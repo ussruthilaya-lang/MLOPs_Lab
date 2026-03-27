@@ -1,0 +1,5 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/mlops-labs-485900/flower-dashboard', '-f', 'Dockerfile.dashboard', '.']
+images:
+- 'gcr.io/mlops-labs-485900/flower-dashboard'
