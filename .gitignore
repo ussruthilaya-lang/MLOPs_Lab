@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pid
+.env
+.env.*
+venv/
+streamlitenv/
+fastapi_lab1_env/
+airflow_lab_env/
+logs/
+*.log
+airflow-webserver.pid
+airflow-worker.pid
+model/
