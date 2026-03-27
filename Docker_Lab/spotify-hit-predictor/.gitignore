@@ -1,0 +1,30 @@
+# ── Virtual environment ────────────────────────────────
+venv/
+.venv/
+env/
+
+# ── Dataset — full file stays local, never pushed ─────
+data/spotify_tracks.csv
+
+# ── Model artifacts — generated at runtime ────────────
+exchange/
+
+# ── Python cache ──────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# ── Env files ─────────────────────────────────────────
+.env
+.env.local
+
+# ── OS ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDE ───────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp

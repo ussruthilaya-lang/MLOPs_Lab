@@ -1,0 +1,40 @@
+services:
+
+  # ── Service 1: Train the model ─────────────────────────────────────────────
+  model-training:
+    image: python:3.11-slim
+    container_name: spotify_trainer
+    working_dir: /app
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data          # mount dataset folder (CSV goes here)
+      - ./requirements.txt:/app/requirements.txt
+      - model_exchange:/exchange  # write model artifacts here
+    command: >
+      sh -c "pip install --quiet -r requirements.txt &&
+             python src/model_training.py"
+
+  # ── Service 2: Serve the Streamlit dashboard ───────────────────────────────
+  serving:
+    image: python:3.11-slim
+    container_name: spotify_dashboard
+    working_dir: /app
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./src:/app/src
+      - ./requirements.txt:/app/requirements.txt
+      - model_exchange:/exchange  # read model artifacts from here
+    depends_on:
+      model-training:
+        condition: service_completed_successfully
+    command: >
+      sh -c "pip install --quiet -r requirements.txt &&
+             streamlit run src/app.py
+               --server.port=8501
+               --server.address=0.0.0.0
+               --server.headless=true
+               --browser.gatherUsageStats=false"
+
+volumes:
+  model_exchange:
