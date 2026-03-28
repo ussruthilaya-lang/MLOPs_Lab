@@ -126,3 +126,25 @@ Pipeline steps:
 * Orchestrate both services with `docker-compose.yml` using `depends_on: service_completed_successfully`
 
 Each decision directly reflects a Docker and MLOps concept.
+
+---
+
+**Lab 5 – MLflow Experiment Tracking Lab Submission**
+- **Course:** MLOps
+- **Lab:** Experiment Tracking (MLflow + Streamlit)
+- **Submission Date:** 28 Mar 2026
+
+**Overview**
+
+This lab focuses on experiment tracking and model versioning using MLflow. I trained an AI vs Human text detection model on a dataset of 6,069 academic abstracts, tracked all experiments with MLflow, registered the best models with versioned aliases, and built a Streamlit dashboard with phrase-level explainability for live predictions.
+
+The goal was to understand the full MLflow lifecycle from logging runs to registering production models and connect it to a meaningful real-world use case aligned with my Rubrix research paper evaluation project.
+
+**What was implemented**
+- Downloaded and processed the AI and Human Text Dataset (6,069 academic abstracts, 51/49 split)
+- Built a TF-IDF + sklearn Pipeline feature extraction approach
+- Trained a baseline Random Forest and tuned XGBoost via grid search (3 configurations)
+- Logged all runs to MLflow : params, metrics, feature importances, and model artifacts
+- Registered both models in MLflow Model Registry with aliases `baseline` and `production`
+- Built a Streamlit app showing model comparison, live predictions, phrase-level highlights, explainability bars, and edit-and-retest functionality
+- Resolved MLflow 3.x Windows compatibility issues by downgrading to `mlflow==2.22.4` with SQLite backend

@@ -12,3 +12,7 @@ logs/
 airflow-webserver.pid
 airflow-worker.pid
 model/
+models/*.pkl
+models/model_summary.json
+models/vectorizer.pkl
+mlruns/
