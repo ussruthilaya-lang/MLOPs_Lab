@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Titanic Survival Predictor</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #0a0a0f; color: #e8e8f0; min-height: 100vh; }
+  .app { max-width: 600px; margin: 0 auto; padding: 2rem 1rem; }
+  .header { display: flex; align-items: center; gap: 14px; margin-bottom: 1.5rem; padding: 1.25rem; background: #14141e; border: 0.5px solid rgba(255,255,255,0.1); border-radius: 14px; }
+  .ship-emoji { font-size: 48px; line-height: 1; }
+  .header-text h1 { font-size: 20px; font-weight: 600; color: #e8e8f0; }
+  .header-text p { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 3px; }
+  .card { background: #14141e; border: 0.5px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+  .section-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; }
+  .field { margin-bottom: 16px; }
+  .field label { font-size: 13px; color: rgba(255,255,255,0.6); display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .field label span { font-weight: 600; color: #e8e8f0; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  select { width: 100%; background: #1e1e2e; border: 0.5px solid rgba(255,255,255,0.15); border-radius: 8px; color: #e8e8f0; padding: 8px 10px; font-size: 14px; }
+  input[type=range] { width: 100%; accent-color: #7c6af5; }
+  .btn { width: 100%; padding: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border-radius: 10px; background: #7c6af5; border: none; color: #fff; margin-top: 4px; transition: opacity 0.15s; }
+  .btn:hover { opacity: 0.88; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .result-card { border-radius: 14px; padding: 1.25rem; text-align: center; display: none; margin-bottom: 1rem; }
+  .result-card.survived { background: #0f2818; border: 0.5px solid #3b6d11; }
+  .result-card.died { background: #280f0f; border: 0.5px solid #a32d2d; }
+  .result-gif { width: 100%; max-height: 220px; object-fit: contain; border-radius: 10px; margin-bottom: 14px; background: #000; }
+  .result-label { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .result-card.survived .result-label { color: #97c459; }
+  .result-card.died .result-label { color: #e24b4a; }
+  .result-sub { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 14px; }
+  .conf-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .pill { font-size: 12px; padding: 5px 14px; border-radius: 20px; font-weight: 500; }
+  .pill-green { background: #1a3d0a; color: #97c459; }
+  .pill-red { background: #3d0a0a; color: #e24b4a; }
+  .input-recap { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 8px; font-family: monospace; background: rgba(0,0,0,0.3); padding: 8px 10px; border-radius: 8px; text-align: left; }
+  .error { font-size: 13px; color: #e24b4a; background: #280f0f; border-radius: 8px; padding: 10px 14px; display: none; margin-bottom: 1rem; border: 0.5px solid #a32d2d; }
+  .loading { font-size: 13px; color: rgba(255,255,255,0.5); text-align: center; display: none; padding: 10px; }
+  .url-note { font-size: 11px; color: rgba(255,255,255,0.2); margin-top: 8px; word-break: break-all; font-family: monospace; }
+  .cheat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid rgba(255,255,255,0.06); cursor: pointer; }
+  .cheat-row:last-child { border-bottom: none; }
+  .cheat-name { font-size: 13px; color: #e8e8f0; }
+  .cheat-desc { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+  .cheat-badge { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 600; }
+  .badge-green { background: #1a3d0a; color: #97c459; }
+  .badge-red { background: #3d0a0a; color: #e24b4a; }
+  .try-btn { font-size: 11px; padding: 4px 10px; border-radius: 8px; background: rgba(124,106,245,0.15); border: 0.5px solid rgba(124,106,245,0.3); color: #7c6af5; cursor: pointer; white-space: nowrap; }
+  .try-btn:hover { background: rgba(124,106,245,0.25); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="ship-emoji">🚢</div>
+    <div class="header-text">
+      <h1>Titanic survival predictor</h1>
+      <p>Powered by GCP Cloud Functions + logistic regression on real Titanic data</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">Quick test passengers</div>
+    <div class="cheat-row" onclick="loadPreset(3,1,22,1,0,7)">
+      <div>
+        <div class="cheat-name">Jack Dawson</div>
+        <div class="cheat-desc">3rd class · Male · Age 22 · Fare $7</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="cheat-badge badge-red">Should die</span>
+        <button class="try-btn">Load</button>
+      </div>
+    </div>
+    <div class="cheat-row" onclick="loadPreset(1,0,17,1,2,100)">
+      <div>
+        <div class="cheat-name">Rose DeWitt</div>
+        <div class="cheat-desc">1st class · Female · Age 17 · Fare $100</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="cheat-badge badge-green">Should survive</span>
+        <button class="try-btn">Load</button>
+      </div>
+    </div>
+    <div class="cheat-row" onclick="loadPreset(1,1,50,0,0,250)">
+      <div>
+        <div class="cheat-name">Rich 1st class man</div>
+        <div class="cheat-desc">1st class · Male · Age 50 · Fare $250</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="cheat-badge badge-red">Likely dies</span>
+        <button class="try-btn">Load</button>
+      </div>
+    </div>
+    <div class="cheat-row" onclick="loadPreset(2,0,28,0,1,25)">
+      <div>
+        <div class="cheat-name">2nd class mum</div>
+        <div class="cheat-desc">2nd class · Female · Age 28 · Fare $25</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="cheat-badge badge-green">Should survive</span>
+        <button class="try-btn">Load</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">Passenger details</div>
+
+    <div class="field">
+      <label>Passenger class <span id="pclassVal">3rd class</span></label>
+      <input type="range" min="1" max="3" step="1" value="3" id="pclass"
+        oninput="lbl('pclassVal', this.value==1?'1st class':this.value==2?'2nd class':'3rd class')" />
+    </div>
+
+    <div class="field">
+      <label>Sex</label>
+      <select id="sex">
+        <option value="1">Male</option>
+        <option value="0">Female</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Age <span id="ageVal">22 years old</span></label>
+      <input type="range" min="1" max="80" step="1" value="22" id="age"
+        oninput="lbl('ageVal', this.value + ' years old')" />
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Siblings / Spouse <span id="sibspVal">1</span></label>
+        <input type="range" min="0" max="8" step="1" value="1" id="sibsp"
+          oninput="lbl('sibspVal', this.value)" />
+      </div>
+      <div class="field">
+        <label>Parents / Children <span id="parchVal">0</span></label>
+        <input type="range" min="0" max="6" step="1" value="0" id="parch"
+          oninput="lbl('parchVal', this.value)" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Fare paid <span id="fareVal">$7</span></label>
+      <input type="range" min="0" max="500" step="1" value="7" id="fare"
+        oninput="lbl('fareVal', '$' + this.value)" />
+    </div>
+
+    <button class="btn" id="predictBtn" onclick="predict()">🎲 Predict my fate</button>
+    <div class="url-note">→ https://titanic-predictor-869201261220.us-central1.run.app</div>
+  </div>
+
+  <div class="error" id="errorMsg"></div>
+  <div class="loading" id="loadingText">⏳ Consulting the iceberg oracle...</div>
+
+  <div class="result-card" id="resultCard">
+    <img class="result-gif" id="resultGif" src="" alt="result" />
+    <div class="result-label" id="resultLabel"></div>
+    <div class="result-sub" id="resultSub"></div>
+    <div class="conf-row">
+      <span class="pill pill-green" id="survConf"></span>
+      <span class="pill pill-red" id="diedConf"></span>
+    </div>
+    <div class="input-recap" id="inputRecap"></div>
+  </div>
+
+</div>
+
+<script>
+const FUNCTION_URL = 'https://titanic-predictor-869201261220.us-central1.run.app';
+
+const SURVIVED_GIFS = [
+  'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif',
+  'https://media.giphy.com/media/3ohzdIuqJoo8QdKlnW/giphy.gif',
+  'https://media.giphy.com/media/xT9IgG50Lg7russbDa/giphy.gif',
+];
+const DIED_GIFS = [
+  'https://media.giphy.com/media/l2JhpjWPccQtT9qoo/giphy.gif',
+  'https://media.giphy.com/media/3og0IMJcSI8p6hYQXS/giphy.gif',
+  'https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif',
+];
+
+function lbl(id, val) { document.getElementById(id).textContent = val; }
+function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function loadPreset(pclass, sex, age, sibsp, parch, fare) {
+  document.getElementById('pclass').value = pclass;
+  document.getElementById('sex').value = sex;
+  document.getElementById('age').value = age;
+  document.getElementById('sibsp').value = sibsp;
+  document.getElementById('parch').value = parch;
+  document.getElementById('fare').value = fare;
+  lbl('pclassVal', pclass==1?'1st class':pclass==2?'2nd class':'3rd class');
+  lbl('ageVal', age + ' years old');
+  lbl('sibspVal', sibsp);
+  lbl('parchVal', parch);
+  lbl('fareVal', '$' + fare);
+  predict();
+}
+
+async function predict() {
+  const btn = document.getElementById('predictBtn');
+  const errorMsg = document.getElementById('errorMsg');
+  const loadingText = document.getElementById('loadingText');
+  const resultCard = document.getElementById('resultCard');
+
+  errorMsg.style.display = 'none';
+  resultCard.style.display = 'none';
+  loadingText.style.display = 'block';
+  btn.disabled = true;
+  btn.textContent = 'Predicting...';
+
+  const pclass = parseInt(document.getElementById('pclass').value);
+  const sex    = parseInt(document.getElementById('sex').value);
+  const age    = parseInt(document.getElementById('age').value);
+  const sibsp  = parseInt(document.getElementById('sibsp').value);
+  const parch  = parseInt(document.getElementById('parch').value);
+  const fare   = parseInt(document.getElementById('fare').value);
+  const features = [pclass, sex, age, sibsp, parch, fare];
+
+  try {
+    const res = await fetch(FUNCTION_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ features })
+    });
+    const data = await res.json();
+    loadingText.style.display = 'none';
+
+    if (data.error) {
+      errorMsg.textContent = 'Error: ' + data.error;
+      errorMsg.style.display = 'block';
+    } else {
+      const survived = data.survived;
+      resultCard.className = 'result-card ' + (survived ? 'survived' : 'died');
+      resultCard.style.display = 'block';
+      document.getElementById('resultGif').src = survived ? pickRandom(SURVIVED_GIFS) : pickRandom(DIED_GIFS);
+      document.getElementById('resultLabel').textContent = survived ? 'You survived! 🛟' : 'You did not survive 🧊';
+      document.getElementById('resultSub').textContent = survived
+        ? 'The lifeboats found you. You made it out alive!'
+        : 'The icy Atlantic claimed you. Rest in peace.';
+      document.getElementById('survConf').textContent = Math.round(data.confidence.survived * 100) + '% survival chance';
+      document.getElementById('diedConf').textContent = Math.round(data.confidence.not_survived * 100) + '% chance of death';
+      document.getElementById('inputRecap').textContent =
+        `features sent → [Pclass: ${pclass}, Sex: ${sex==0?'female':'male'}, Age: ${age}, SibSp: ${sibsp}, Parch: ${parch}, Fare: $${fare}]`;
+    }
+  } catch(e) {
+    loadingText.style.display = 'none';
+    errorMsg.textContent = 'Could not reach the function. Error: ' + e.message;
+    errorMsg.style.display = 'block';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🎲 Predict my fate';
+}
+</script>
+</body>
+</html>
